@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>気分記録アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #b0c4de;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #ff8c00;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .message {
+      background-color: #000080;
+      padding: 12px;
+      border-left: 6px solid #4a90e2;
+      margin-top: 10px;
+    }
+    .entry {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌿 気分記録アプリ</h1>
+
+  <form id="moodForm">
+    <label for="mood">今日の気分：</label>
+    <select id="mood" required>
+      <option value="">選んでください</option>
+      <option value="元気">元気</option>
+      <option value="普通">普通</option>
+      <option value="つらい">つらい</option>
+    </select>
+
+    <label for="note">メモ（任意）：</label>
+    <textarea id="note" rows="3" placeholder="自由に書いてOKです"></textarea>
+
+    <button type="submit">記録する</button>
+  </form>
+
+  <div class="message" id="messageBox" style="display: none;"></div>
+
+  <h2>📝 記録一覧</h2>
+  <h2>📊 気分グラフ</h2>
+<canvas id="moodChart" width="400" height="200"></canvas>
+  <div id="entryList"></div>
+
+  <script>
+  const ctx = document.getElementById('moodChart').getContext('2d');
+let chart;
+
+function updateChart(entries) {
+  const moodMap = { '元気': 2, '普通': 1, 'つらい': 0 };
+  const labels = entries.map(entry => entry.date);
+  const data = entries.map(entry => moodMap[entry.mood]);
+
+  if (chart) chart.destroy(); // 前のグラフを削除して更新
+
+  chart = new Chart(ctx, {
+    type: 'line', // 'bar' にすれば棒グラフにもできる
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '気分の推移',
+        data: data,
+        backgroundColor: 'rgba(74, 144, 226, 0.2)',
+        borderColor: 'rgba(74, 144, 226, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          min: 0,
+          max: 2,
+          ticks: {
+            callback: function(value) {
+              return value === 2 ? '元気' : value === 1 ? '普通' : 'つらい';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+    const form = document.getElementById('moodForm');
+    const moodInput = document.getElementById('mood');
+    const noteInput = document.getElementById('note');
+    const messageBox = document.getElementById('messageBox');
+    const entryList = document.getElementById('entryList');
+
+    function getMessage(mood) {
+      switch (mood) {
+        case '元気':
+          return "その調子！今日も素敵な1日になりますように🌞";
+        case '普通':
+          return "無理せずゆっくりでOK！あなたはえらい😊";
+        case 'つらい':
+          return "休んでいいんだよ。あなたの気持ちは大切です🌿";
+        default:
+          return "";
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const mood = moodInput.value;
+      const note = noteInput.value;
+      const date = new Date().toLocaleDateString();
+      const message = getMessage(mood);
+
+      // メッセージ表示
+      messageBox.textContent = message;
+      messageBox.style.display = "block";
+
+      // 記録追加
+      const entry = document.createElement('div');
+      entry.classList.add('entry');
+      entry.innerHTML = `
+        <strong>📅 ${date}</strong><br>
+        気分: ${mood}<br>
+        メモ: ${note ? note : "なし"}<br>
+        <em>${message}</em>
+      `;
+      entryList.prepend(entry);
+
+      // フォームリセット
+      form.reset();
+    });
+  </script>
+</body>
+				</html>
